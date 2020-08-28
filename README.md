@@ -1,4 +1,4 @@
-# notify
+# notification
 Easily send desktop notifications.
 
 Supported OS
@@ -6,11 +6,11 @@ Supported OS
 - [x] Linux/BSD (requires libdbus)
 
 # Installation
-`nimble install notify`
+`nimble install notification`
 
 # Example
 ```nim
-import notify
+import notification
 
 var n = initNotification(
   summary = "hello",
