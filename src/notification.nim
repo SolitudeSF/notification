@@ -268,6 +268,7 @@ proc notify*(b: Bus, n: Notification): NotificationHandle =
         var iter = iterate reply
         iter.unpackCurrent(DbusValue).uint32Value
       else:
+        discard b.sendMessage msg
         n.replaceId,
     bus: b,
     notification: n)
