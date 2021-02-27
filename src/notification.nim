@@ -79,11 +79,6 @@ type
     timeout*: Timeout
     replaceId*: uint32
 
-  NotificationHandle* = object
-    id*: uint32
-    bus*: Bus
-    notification*: Notification
-
 const
   dbusObjectPath = ObjectPath("/org/freedesktop/Notifications")
   dbusInterface = "org.freedesktop.Notifications"
@@ -250,7 +245,7 @@ proc getCapabilities*(b = getBus(DBUS_BUS_SESSION)): seq[string] =
   for i, v in res.arrayValue:
     result[i] = v.stringValue
 
-proc notify*(b: Bus, n: Notification): NotificationHandle =
+proc notify*(b: Bus, n: Notification): uint32 =
   var msg = makeCall(dbusInterface, dbusObjectPath, dbusInterface, "Notify")
   msg.append n.appname
   msg.append n.replaceId
@@ -261,28 +256,24 @@ proc notify*(b: Bus, n: Notification): NotificationHandle =
   msg.append n.hints
   msg.append n.timeout.duration
 
-  NotificationHandle(
-    id: block:
-      if n.replaceId == 0:
-        let reply = waitForReply b.sendMessageWithReply msg
-        var iter = iterate reply
-        iter.unpackCurrent(DbusValue).uint32Value
-      else:
-        discard b.sendMessage msg
-        n.replaceId,
-    bus: b,
-    notification: n)
+  if n.replaceId == 0:
+    let reply = waitForReply b.sendMessageWithReply msg
+    var iter = iterate reply
+    iter.unpackCurrent(DbusValue).uint32Value
+  else:
+    discard b.sendMessage msg
+    n.replaceId
 
-proc notify*(n: Notification): NotificationHandle =
+proc notify*(n: Notification): uint32 =
   getBus(DBUS_BUS_SESSION).notify n
 
-proc closeNotification*(b = getBus(DBUS_BUS_SESSION), id: uint32) =
+proc closeNotification*(b: Bus, id: uint32) =
   var msg = makeCall(dbusInterface, dbusObjectPath, dbusInterface, "CloseNotification")
   msg.append id
   b.sendMessage msg
 
-proc closeNotification*(n: NotificationHandle) =
-  n.bus.closeNotification n.id
+proc closeNotification*(id: uint32) =
+  closeNotification(getBus(DBUS_BUS_SESSION), id)
 
 proc getServerInformation*(b = getBus(DBUS_BUS_SESSION)): tuple[name, vendor, version, specVersion: string] =
   var msg = makeCall(dbusInterface, dbusObjectPath, dbusInterface, "GetServerInformation")

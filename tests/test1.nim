@@ -2,18 +2,18 @@ import unittest
 import ../src/notification
 import imageman/[images, colors]
 
-var handle: NotificationHandle
+var id: uint32
 
 test "get capabilities":
   echo getCapabilities()
   check true
 
 test "notify":
-  handle = notify(n = initNotification(summary = "test"))
-  check handle.id != 0
+  id = notify(n = initNotification(summary = "test"))
+  check id != 0
 
 test "close notification":
-  closeNotification(handle)
+  closeNotification(id)
   check true
 
 test "get server information":
